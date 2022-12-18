@@ -1,0 +1,307 @@
+
+
+
+Project: GapMinder world - [GapMinder World ]
+Table of Contents
+Introduction
+Data Wrangling
+Exploratory Data Analysis
+Conclusions
+
+Introduction
+Dataset Description
+I will examine available data to study effect of level of development in countries affect its co2 emissions , women fertility, number of children died within age 0-5and life expectacy.
+
+Question(s) for Analysis
+1-How CO2 emissions change through 47 years in developed , undeveloped and developing countries.. I will take examples of developed Sweden , and example of developing Egypt , Brazil, China (industrial country), Ghana (natural country)
+
+2-How Fertility of women in our 5 chosen countries change ??
+
+3-How mortality of children 0-5 years per 1000 born in our 5 chosen countries change ??
+
+4-How life expectacy in our 5 chosen countries change ??
+
+# Use this cell to set up import statements for all of the packages 
+​
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
+to 0.25.0 instead 0.23.3 to enjoy new features
+# Upgrade pandas to 0.25.0 instead 0.23.3 to enjoy new features
+!pip install --upgrade pandas==0.25.0
+Requirement already up-to-date: pandas==0.25.0 in /opt/conda/lib/python3.6/site-packages (0.25.0)
+Requirement already satisfied, skipping upgrade: python-dateutil>=2.6.1 in /opt/conda/lib/python3.6/site-packages (from pandas==0.25.0) (2.6.1)
+Requirement already satisfied, skipping upgrade: pytz>=2017.2 in /opt/conda/lib/python3.6/site-packages (from pandas==0.25.0) (2017.3)
+Requirement already satisfied, skipping upgrade: numpy>=1.13.3 in /opt/conda/lib/python3.6/site-packages (from pandas==0.25.0) (1.19.5)
+Requirement already satisfied, skipping upgrade: six>=1.5 in /opt/conda/lib/python3.6/site-packages (from python-dateutil>=2.6.1->pandas==0.25.0) (1.11.0)
+
+Data Wrangling
+#importing co2 data 
+df3 = pd.read_csv('co2_emissions_tonnes_per_person.csv')
+#change year columns to be one column
+co2 = pd.melt(df3, ['country'],
+                     var_name = 'year', 
+                     value_name = 'co2_emissions').sort_values(by = ['country', 'year']).reset_index(drop = True)
+co2.head(1)
+​
+country	year	co2_emissions
+0	Afghanistan	1800	NaN
+#importing fertillity data 
+​
+df4 = pd.read_csv('children_per_woman_total_fertility.csv')
+#change year columns to be one column
+​
+fer= pd.melt(df4,
+                     ['country'],
+                     var_name = 'year', 
+                     value_name = 'fer').sort_values(by = ['country', 'year']).reset_index(drop = True)
+fer.head(1)
+country	year	fer
+0	Afghanistan	1800	7.0
+#import child mortalilty death
+df2 = pd.read_csv('child_mortality_0_5_year_olds_dying_per_1000_born.csv')
+#change year columns to be one column
+​
+chd=pd.melt(df2,
+                     ['country'],
+                     var_name = 'year', 
+                     value_name = 'child').sort_values(by = ['country', 'year']).reset_index(drop = True)
+chd.head(1)
+country	year	child
+0	Afghanistan	1800	469.0
+#import life expectacy data
+df = pd.read_csv('life_expectancy_years.csv')
+#change year columns to be one column
+​
+lif=pd.melt(df,
+                     ['country'],
+                     var_name = 'year', 
+                     value_name = 'life_expectacy').sort_values(by = ['country', 'year']).reset_index(drop = True)
+lif.head(1)
+country	year	life_expectacy
+0	Afghanistan	1800	28.2
+#merge the 4 dataframes
+join1 = pd.merge(co2, lif, on = ['country', 'year']).merge(fer, on = ['country', 'year']).merge(chd, on = ['country', 'year'])
+join1.head(1)
+country	year	co2_emissions	life_expectacy	fer	child
+0	Afghanistan	1800	NaN	28.2	7.0	469.0
+#selecting data after year 1972
+gap=join1[join1['year']>= '1972']
+gap.head(2)
+country	year	co2_emissions	life_expectacy	fer	child
+172	Afghanistan	1972	0.13	47.3	7.45	292.0
+173	Afghanistan	1973	0.135	47.3	7.45	286.0
+gap.to_csv('clean_data.csv', index = False)
+Data Cleaning
+#reading data
+​
+un=pd.read_csv('clean_data.csv')
+#scanning data
+un.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 8742 entries, 0 to 8741
+Data columns (total 6 columns):
+country           8742 non-null object
+year              8742 non-null int64
+co2_emissions     8615 non-null float64
+life_expectacy    8742 non-null float64
+fer               8742 non-null float64
+child             8742 non-null float64
+dtypes: float64(4), int64(1), object(1)
+memory usage: 409.9+ KB
+#fill null co2 values with mean
+un['co2_emissions'].fillna(un['co2_emissions'].mean(), inplace=True)
+​
+#checking duplicates
+un.duplicated().sum()
+​
+0
+un.describe()
+year	co2_emissions	life_expectacy	fer	child
+count	8742.000000	8742.000000	8742.000000	8742.000000	8742.000000
+mean	1995.000000	4.699226	66.818165	3.768349	68.024232
+std	13.565436	6.981035	9.432820	1.950418	69.286491
+min	1972.000000	0.004330	9.500000	0.900000	1.700000
+25%	1983.000000	0.463250	60.300000	2.000000	15.400000
+50%	1995.000000	2.135000	69.100000	3.240000	39.700000
+75%	2007.000000	6.550000	73.900000	5.480000	102.000000
+max	2018.000000	87.700000	84.800000	8.870000	360.000000
+un.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 8742 entries, 0 to 8741
+Data columns (total 6 columns):
+country           8742 non-null object
+year              8742 non-null int64
+co2_emissions     8742 non-null float64
+life_expectacy    8742 non-null float64
+fer               8742 non-null float64
+child             8742 non-null float64
+dtypes: float64(4), int64(1), object(1)
+memory usage: 409.9+ KB
+
+Exploratory Data Analysis
+1-how co2 emissions change through 50 years in developed , undeveloped and developing countries.. I will take examples of developed Sweden , and example of developing Egypt , Brazil, China (industrial country), Ghana (natural country)
+
+2-how Fertility of women in our 5 chosen countries change ??
+
+3-how mortality of children 0-5 years per 1000 born in our 5 chosen countries change ??
+
+4-how life expectacy in our 5 chosen countries change ??
+
+un_eg = un[un['country']=='Egypt']
+un_br = un[un['country']=='Brazil']
+un_sw = un[un['country']=='Sweden']
+un_ch =un[un['country']=='China']
+un_gh = un[un['country']=='Ghana']
+def Line(h):
+  """ draw line chart for different countries to illustrate different variables to answer our questions, and then show means and then write comments"""
+    #specify the column headers in our dataframe to be variables of our statistics
+  w=un.columns[2:]
+    #putting our comments in a dataframe to be shown after each statistics
+  com=["Co2 : starting from 1972 , since most of our countries were not industrial then (except Sweden), they don't have much CO2 emissions , by time these countries tried to make industrial revolution , their CO2 increased (specially China ) while Sweden started to lower its CO2 dramatically..when we studied the mean of CO2 , sweden was the first country (6), then China(3) , then Egypt and Brazil (1) while Ghana was the least as it is the least industrial country in our group.", "Life expectacy: it increased over years for all countries , althought mean is the highest for sweden , and least for Ghana.",
+​
+"Fertility of women : starting from 1972, all countries looks like their fertility decreased except Sweden that had constant rates.. when we studied the mean Ghana had the most fertility rate then Egypt , then China and Brazil , least was Sweden.",
+​
+"Child 0-5 years mortality per 1000 new born : all countries had decreased their child mortality rate over years except Sweden that had constant child mortality rate .. child mortality means show that Ghana had the highest rate then Egypt then Brazil , China least is Sweden ."
+​
+]
+  com_df=pd.DataFrame(com)
+    # counter to show comment
+  g=0
+#our function to be performed using each variable in our dataframe
+  for h in w:
+        # to be our header
+    print(h)  
+    #our line chart
+    ax=un_eg.plot(x='year', y=h, label='Egypt', title='plotting {} for Eygpt, Sweden , Brazil, China, Ghana'.format(h));
+    un_sw.plot(x='year', y=h, ax=ax, label='Sweden');
+    un_br.plot(x='year', y=h, ax=ax, label='Brazil');
+    un_ch.plot(x='year', y=h, ax=ax, label='China');
+    un_gh.plot(x='year', y=h, ax=ax, label='Ghana');
+    plt.xlabel("Year")
+    plt.ylabel('{}'.format(h))
+    plt.show();
+    # our mean table 
+    F=un.query('country == "Egypt"')[h].mean(),un.query('country == "Sweden"')[h].mean(),un.query('country == "Brazil"')[h].mean(), un.query('country == "China"')[h].mean(),un.query('country == "Ghana"')[h].mean()
+    labels =( ['Egypt', 'Sweden','Brazil','China','Ghana'])
+    Fx=pd.DataFrame(F,labels, columns=['mean'])
+    print(Fx)
+    # printing our comment
+    print(com_df.iloc[g]);
+    #incrementing our counter
+    g+=1
+    #drawing 2 lines after each statistics
+    print('*'*40)
+    print('*'*40)
+Line('h')  
+co2_emissions
+
+            mean
+Egypt   1.664553
+Sweden  6.881277
+Brazil  1.706809
+China   3.288723
+Ghana   0.339979
+0    Co2 : starting from 1972 , since most of our c...
+Name: 0, dtype: object
+****************************************
+****************************************
+life_expectacy
+
+             mean
+Egypt   64.287234
+Sweden  78.974468
+Brazil  68.423404
+China   69.755319
+Ghana   59.687234
+0    Life expectacy: it increased over years for al...
+Name: 1, dtype: object
+****************************************
+****************************************
+fer
+
+            mean
+Egypt   4.231915
+Sweden  1.801915
+Brazil  2.817660
+China   2.182340
+Ghana   5.323617
+0    Fertility of women : starting from 1972, all c...
+Name: 2, dtype: object
+****************************************
+****************************************
+child
+
+              mean
+Egypt    89.340426
+Sweden    5.843191
+Brazil   55.663830
+China    43.908085
+Ghana   117.655319
+0    Child 0-5 years mortality per 1000 new born : ...
+Name: 3, dtype: object
+****************************************
+****************************************
+More statistics about Egypt data:
+
+counts
+plt.hist(un_eg['co2_emissions'], color='blue', edgecolor='black')
+ 
+plt.xlabel('CO2 rates')
+plt.ylabel('CO2 counts')
+plt.title('CO2 emissions in Egypt');
+​
+
+More efforts needed to decrease CO2 emissions in Egypt
+
+fe expectacy
+un_eg.plot(x='fer', y=['co2_emissions'], kind='scatter', title='relation of women Fertility and CO2 emission');
+un_eg.plot(x='child', y=['life_expectacy'], kind='scatter', title='relation of children mortality and life expectacy');
+
+
+un_eg.corr()
+​
+year	co2_emissions	life_expectacy	fer	child
+year	1.000000	0.976107	0.959679	-0.931321	-0.941581
+co2_emissions	0.976107	1.000000	0.930373	-0.901589	-0.916794
+life_expectacy	0.959679	0.930373	1.000000	-0.967483	-0.993185
+fer	-0.931321	-0.901589	-0.967483	1.000000	0.946275
+child	-0.941581	-0.916794	-0.993185	0.946275	1.000000
+It is clear that CO2 emissions and Fertility of women has negative correlation(-0.9) as CO2 has negative impacts on our health. Also Child mortality and life expectacy are negatively related (-0.99), as Health care improvements affect child mortality negatively and affect life expectacy positively.
+
+Further investigations should take place regarding life expectacy and CO2 emission , their correlation are positively strong ( 0.9 ). May be other factors needs to be included.
+
+Also Child mortality and fertility correlation needs more investigations as they are positively strong (0.9).
+
+
+Conclusions:
+Limitations :
+
+The report is investigating data through years 1972-2018.
+
+Only 5 countries are included Egypt ,Sweden , Brazil, China , Ghana.
+
+we hereby conclude the following:
+
+1.Co2 : starting from 1972 , since most of our countries were not industrial then (except Sweden), they don't have much CO2 emissions , by time these countries tried to make industrial revolution , their CO2 increased (specially China ) while Sweden started to lower its CO2 dramatically..when we studied the mean of CO2 , sweden was the first country (6), then China(3) , then Egypt and Brazil (1) while Ghana was the least as it is the least industrial country in our group.
+
+2- Fertility of women : starting from 1972, all countries looks like their fertility decreased except Sweden that had constant rates.. when we studied the mean Ghana had the most fertility rate then Egypt , then China and Brazil , least was Sweden.
+
+3-Child 0-5 years mortality per 1000 new born : all countries had decreased their child mortality rate over years except Sweden that had constant child mortality rate .. child mortality means show that Ghana had the highest rate then Egypt then Brazil , China least is Sweden .
+
+4-Life expectacy: it increased over years for all countries , althought mean is the highest for sweden , and least for Ghana.
+
+*level of development of the country affects its rate . For Sweden, with its high technology, child mortality is the least , life expectacy is the maximum, the greatest efforts to lower CO2.
+
+Ghana is the least developed country in our group , it has the highest child mortality rate , least Co2 emissions, highest women fertality but lower life expectacy.
+
+In Egypt , we studied CO2 with women fertality, we find that as CO2 increased, women fertality decreased over years and child moratlity decreased and life expectacy increased.
+
+Further research are required to study relation between CO2 emissions and life expectacy and between Child mortality and fertility.
+
+from subprocess import call
+call(['python', '-m', 'nbconvert', 'Investigate_a_Dataset.ipynb'])
+0
+​
